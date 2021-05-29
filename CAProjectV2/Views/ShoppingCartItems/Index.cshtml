@@ -1,0 +1,155 @@
+﻿
+@model IEnumerable<CAProjectV2.Models.ShoppingCartItem>
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" />
+<link href="~/css/button.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link href="~/css/product.css" rel="stylesheet" />
+@*<link href="~/css/main.css" rel="stylesheet" />
+*@<link href="~/css/addtoCart.css" rel="stylesheet" />
+@*<link href="~/css/EmptyView.css" rel="stylesheet" />
+*@
+
+@{
+    ViewData["Title"] = "View Cart";
+
+    List<ShoppingCartItem> cart = (List<ShoppingCartItem>)ViewData["Data"];
+    List<ShoppingCartItem> cartdistinct = (List<ShoppingCartItem>)ViewData["productcount"];
+
+
+    //Prevent duplicate items in shopping cart
+    List<ShoppingCartItem> cartNoDup = new List<ShoppingCartItem>();
+
+    foreach (var item in cart)
+    {
+        //if item is in cartNoDup, don't add
+        ShoppingCartItem temp = cartNoDup.FirstOrDefault(m => m.ProductId == item.ProductId);
+
+        if (temp == null)
+        {
+            cartNoDup.Add(item);
+        }
+
+
+    }
+    decimal total = 0m;
+    foreach (var item in cart)
+    {
+        total += item.Product.Price;
+    }
+
+    decimal eachTotalPrice = 0m;
+    foreach (var item in cart)
+    {
+
+        {
+            eachTotalPrice += item.Product.Price * item.Quantity;
+        }
+    }
+
+
+}
+
+
+@section Scripts
+{
+
+}
+
+@if (cart.Count == 0)
+{
+
+    <div class="container-fluid mt-100">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+
+                    </div>
+                    <div class="card-body cart">
+                        <div class="col-sm-12 empty-cart-cls text-center">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvKnZN_9R2GH4ETw6DdOVNAjmefSNDDIJDWHJpIJ4YkYQnNtVqk7J4VZZDMcJam8FveAI&usqp=CAU" width="259" height="194" class="img-fluid mb-4 mr-3">
+                            <h1><strong>Your Cart is Empty</strong></h1>
+                            <h3>Add something to make me happy :)</h3> <a href="/Products/Index" class="btn btn-primary cart-btn-transform m-3" data-abc="true" style="font-size:20px ;padding-left : 10px;padding-right:10px;padding-top:5px;padding-bottom:5px">continue shopping</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container_addtoCart">
+        <h1><b>View Cart</b></h1>
+
+        <div class="shopping-cart">
+
+            <div class="column-labels">
+                <label class="product-image">Image</label>
+                <label class="product-details">Product</label>
+                <label class="product-price">Price</label>
+                <label class="product-quantity">Quantity</label>
+                <label class="product-removal"> </label>
+                <label class="product-line-price"> </label>
+            </div>
+
+            @foreach (var item in cartNoDup)
+            {
+
+                <div class="product">
+                    <div class="product-image">
+                        <img src=@item.Product.ImageUrl>
+                    </div>
+                    <div class="product-details">
+                        <div class="product-title">@item.Product.ProductName</div>
+                        <div class="product-description_long">@item.Product.Description</div>
+                    </div>
+                    <div class="product-price">@item.Product.Price</div>
+                    <div class="product-quantity">
+                        <form asp-area="" asp-controller="ShoppingCartItems" asp-action="Updating" method="post">
+                            <input type="hidden" name="Id" value=@item.Id />
+                            <input type="hidden" name=UserId value=@item.UserId />
+                            <input type="hidden" name="ProductId" value=@item.ProductId />
+                            <div class="container">
+                                <button type="submit" class="minusqty" name="Quantity" value="-1" style="outline :none">-</button>
+                                <input type="text" class="qty" value="@cart.Count(x => x.ProductId == item.ProductId)" />
+                                <button type="submit" class="addqty" name="Quantity" value="1" style="outline :none">+</button>
+                            </div>
+                        </form>
+                    </div>
+
+
+
+                    <form asp-area="" asp-controller="ShoppingCartItems" asp-action="Delete" method="post">
+                        <div class="product-removal_button">
+                            <input type="submit" class="remove-product" style="outline:none" value="Remove" />
+                            <input type="hidden" name=UserId value=@item.UserId />
+                            <input type="hidden" name="ProductId" value=@item.ProductId />
+                        </div>
+                    </form>
+                </div>
+            }
+
+
+            <div class="totals">
+                
+                <div class="continueShopping">
+                    <a class="continueShopping" href="/Products/Index">Continue Shopping</a>
+                </div>
+                <div class="totals-item totals-item-total">
+                    <label>Grand Total</label>
+                    <div class="totals-value" id="cart-total">@total</div>
+                </div>
+            </div>
+            <form asp-controller="OrderDetails" asp-action="Checkout" method="post">
+                <input type="hidden" asp-route-id="@total" />
+                <button class="checkout" style="outline:none">Checkout</button>
+            </form>
+
+
+        </div>
+
+    </div>
+
+}
